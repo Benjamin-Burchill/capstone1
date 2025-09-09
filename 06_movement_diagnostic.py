@@ -180,3 +180,4 @@ if __name__ == "__main__":
     print("Watch console for position mismatches")
     app = SimpleMovement()
     app.run()
+

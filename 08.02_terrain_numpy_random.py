@@ -349,3 +349,4 @@ if __name__ == "__main__":
     print("- 7 distinct color zones")
     app = NumpyRandomTerrain()
     app.run()
+

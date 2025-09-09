@@ -286,3 +286,4 @@ if __name__ == "__main__":
     print("Camera rotation will persist when you stop pressing Q/E")
     app = FixedStateTerrain()
     app.run()
+

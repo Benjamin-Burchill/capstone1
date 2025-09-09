@@ -218,3 +218,4 @@ if __name__ == "__main__":
     print("Should show: Wireframe -> Vertex colors (no light) -> Vertex colors (with light)")
     app = DebugTerrain()
     app.run()
+

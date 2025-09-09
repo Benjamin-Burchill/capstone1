@@ -1,0 +1,45 @@
+from direct.showbase.ShowBase import ShowBase
+from panda3d.core import GeoMipTerrain, PNMImage, Filename
+
+class TerrainDemo(ShowBase):
+    def __init__(self):
+        ShowBase.__init__(self)
+        
+        # Step 1: Create the GeoMipTerrain instance
+        self.terrain = GeoMipTerrain("myTerrain")
+        
+        # Step 2: Load the heightfield image
+        heightfield_path = Filename("heightmap.png")  # Replace with your file path
+        self.terrain.setHeightfield(heightfield_path)
+        
+        # Step 3: Configure properties for quality and performance
+        self.terrain.setBlockSize(32)  # Chunk size; powers of two work best (16, 32, 64)
+        self.terrain.setNear(50)       # Distance for highest LOD (closer = more detail)
+        self.terrain.setFar(300)       # Distance for lowest LOD
+        self.terrain.setMinLevel(0)    # Minimum LOD level (0 = max quality)
+        self.terrain.setFocalPoint(base.camera)  # Tie LOD to camera position
+        self.terrain.setAutoFlatten(GeoMipTerrain.AFMStrong)  # Optimize by flattening after updates
+        
+        # Step 4: Scale and position the terrain
+        terrain_root = self.terrain.getRoot()
+        terrain_root.reparentTo(render)
+        terrain_root.setScale(1, 1, 100)  # X/Y for horizontal scale, Z for height exaggeration
+        terrain_root.setPos(-256, -256, 0)  # Center it if heightmap is 513x513
+        
+        # Step 5: Generate the initial terrain
+        self.terrain.generate()
+        
+        # Step 6: Set up camera controls (optional for testing)
+        self.disableMouse()  # Allow manual camera control
+        self.camera.setPos(0, -200, 50)  # Starting camera position
+        self.camera.lookAt(0, 0, 0)
+        
+        # Step 7: Add an update task for dynamic LOD
+        self.taskMgr.add(self.updateTerrain, "updateTerrain")
+
+    def updateTerrain(self, task):
+        self.terrain.update()  # Checks and regenerates chunks as needed
+        return task.cont  # Continue the task
+
+app = TerrainDemo()
+app.run()

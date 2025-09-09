@@ -260,3 +260,4 @@ if __name__ == "__main__":
     print("Notice the northeast-southwest ridge orientation")
     app = AppalachianTerrain()
     app.run()
+

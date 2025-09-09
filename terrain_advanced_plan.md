@@ -144,3 +144,4 @@ terrain_generator.py
 3. Add thermal erosion
 4. Implement height-based coloring
 5. Test and iterate
+

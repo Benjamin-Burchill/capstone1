@@ -423,3 +423,4 @@ if __name__ == "__main__":
     print("- Arrow keys: Control camera pitch")
     app = IslandTerrain()
     app.run()
+

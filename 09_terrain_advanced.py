@@ -347,3 +347,4 @@ if __name__ == "__main__":
     print("This may take a moment to generate...")
     app = AdvancedTerrain()
     app.run()
+

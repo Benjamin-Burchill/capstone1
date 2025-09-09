@@ -143,3 +143,4 @@ class SimpleMovement(ShowBase):
 if __name__ == "__main__":
     app = SimpleMovement()
     app.run()
+

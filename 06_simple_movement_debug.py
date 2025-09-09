@@ -164,3 +164,4 @@ if __name__ == "__main__":
     print("Watch this console for key events and movement logs")
     app = SimpleMovement()
     app.run()
+
