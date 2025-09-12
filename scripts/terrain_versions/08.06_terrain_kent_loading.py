@@ -1,6 +1,7 @@
 """
-08.06_terrain_kent_loading.py - Kent-sized terrain with loading screen
+08.06_terrain_kent_loading.py - Kent-sized terrain with enhanced loading screen
 Massive scale: 59,000 x 59,000 units
+Features: Detailed progress tracking, ETA calculation, comprehensive logging
 """
 
 from direct.showbase.ShowBase import ShowBase
@@ -14,31 +15,80 @@ from direct.task import Task
 from direct.gui.DirectGui import DirectWaitBar, DirectLabel
 import numpy as np
 import math
+import time
+import logging
+from datetime import datetime, timedelta
 
 class KentSizedTerrain(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
         
+        # Setup logging
+        self.setup_logging()
+        
         # Window setup
         props = WindowProperties()
-        props.setTitle("Kent-Sized Terrain - 3,500 km²")
+        props.setTitle("Kent-Sized Terrain - 3,500 km² (Enhanced Loading)")
         self.win.requestProperties(props)
         
         # Sky color
         self.setBackgroundColor(0.4, 0.5, 0.7, 1)
         
-        # Setup loading screen
-        self.loading_label = DirectLabel(
-            text="Generating Kent-sized terrain...",
-            text_scale=0.1,
-            frameColor=(0, 0, 0, 0.5),
-            text_fg=(1,1,1,1),
-            pos=(0, 0, 0.2)
+        # Loading progress tracking
+        self.start_time = time.time()
+        self.current_step = ""
+        self.total_steps = 10
+        self.current_step_num = 0
+        self.step_start_time = time.time()
+        self.progress_history = []  # For ETA calculation
+        
+        # Setup enhanced loading screen
+        self.loading_title = DirectLabel(
+            text="Generating Kent-Sized Terrain",
+            text_scale=0.08,
+            frameColor=(0, 0, 0, 0.7),
+            text_fg=(1, 1, 0.8, 1),
+            pos=(0, 0, 0.4)
         )
+        
+        self.loading_label = DirectLabel(
+            text="Initializing terrain generation...",
+            text_scale=0.05,
+            frameColor=(0, 0, 0, 0),
+            text_fg=(0.9, 0.9, 0.9, 1),
+            pos=(0, 0, 0.25)
+        )
+        
         self.progress_bar = DirectWaitBar(
             value=0,
-            pos=(0, 0, 0),
-            scale=(1.5, 1, 0.1)
+            pos=(0, 0, 0.1),
+            scale=(1.8, 1, 0.08),
+            frameColor=(0.2, 0.2, 0.2, 1),
+            barColor=(0.3, 0.7, 0.3, 1)
+        )
+        
+        self.percentage_label = DirectLabel(
+            text="0.0%",
+            text_scale=0.06,
+            frameColor=(0, 0, 0, 0),
+            text_fg=(1, 1, 1, 1),
+            pos=(0, 0, 0.02)
+        )
+        
+        self.time_info_label = DirectLabel(
+            text="Elapsed: 0s | ETA: Calculating...",
+            text_scale=0.04,
+            frameColor=(0, 0, 0, 0),
+            text_fg=(0.8, 0.8, 1, 1),
+            pos=(0, 0, -0.05)
+        )
+        
+        self.step_info_label = DirectLabel(
+            text="Step 0/10: Initializing",
+            text_scale=0.04,
+            frameColor=(0, 0, 0, 0),
+            text_fg=(1, 0.8, 0.6, 1),
+            pos=(0, 0, -0.12)
         )
         
         # Start generation task
@@ -86,17 +136,123 @@ class KentSizedTerrain(ShowBase):
         self.state_text.hide()
         self.info_text.hide()
     
-    def generate_terrain_task(self, task):
-        generator = self.create_kent_terrain_generator()
-        while True:
+    def setup_logging(self):
+        """Setup comprehensive logging for terrain generation"""
+        # Create logger
+        self.logger = logging.getLogger('TerrainGeneration')
+        self.logger.setLevel(logging.INFO)
+        
+        # Clear existing handlers
+        for handler in self.logger.handlers[:]:
+            self.logger.removeHandler(handler)
+        
+        # Console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        console_formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        console_handler.setFormatter(console_formatter)
+        self.logger.addHandler(console_handler)
+        
+        # File handler
+        try:
+            file_handler = logging.FileHandler('terrain_generation.log')
+            file_handler.setLevel(logging.DEBUG)
+            file_formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
+            file_handler.setFormatter(file_formatter)
+            self.logger.addHandler(file_handler)
+        except Exception as e:
+            print(f"Could not create log file: {e}")
+        
+        self.logger.info("=== Terrain Generation Session Started ===")
+        self.logger.info(f"Target size: 59,000 x 59,000 units (3,500 km²)")
+    
+    def update_progress(self, progress, step_name, step_num=None):
+        """Update progress with enhanced tracking and ETA calculation"""
+        current_time = time.time()
+        elapsed = current_time - self.start_time
+        
+        # Update step tracking
+        if step_name != self.current_step:
+            if self.current_step:
+                step_duration = current_time - self.step_start_time
+                self.logger.info(f"Completed: {self.current_step} (took {step_duration:.2f}s)")
+            
+            self.current_step = step_name
+            self.step_start_time = current_time
+            if step_num is not None:
+                self.current_step_num = step_num
+            self.logger.info(f"Starting: {step_name}")
+        
+        # Store progress history for ETA calculation
+        self.progress_history.append((current_time, progress))
+        
+        # Keep only recent history (last 10 data points)
+        if len(self.progress_history) > 10:
+            self.progress_history.pop(0)
+        
+        # Calculate ETA
+        eta_text = "Calculating..."
+        if len(self.progress_history) >= 2 and progress > 0.01:
             try:
-                progress = next(generator)
-                self.progress_bar['value'] = progress * 100
-            except StopIteration as e:
-                self.terrain = e.value
-                self.finish_loading()
-                return Task.done
-            return Task.cont
+                # Calculate average progress rate
+                time_span = self.progress_history[-1][0] - self.progress_history[0][0]
+                progress_span = self.progress_history[-1][1] - self.progress_history[0][1]
+                
+                if time_span > 0 and progress_span > 0:
+                    rate = progress_span / time_span  # progress per second
+                    remaining_progress = 1.0 - progress
+                    eta_seconds = remaining_progress / rate
+                    
+                    if eta_seconds < 60:
+                        eta_text = f"{int(eta_seconds)}s"
+                    elif eta_seconds < 3600:
+                        eta_text = f"{int(eta_seconds/60)}m {int(eta_seconds%60)}s"
+                    else:
+                        eta_text = f"{int(eta_seconds/3600)}h {int((eta_seconds%3600)/60)}m"
+            except:
+                eta_text = "Calculating..."
+        
+        # Update UI elements
+        percentage = progress * 100
+        self.progress_bar['value'] = percentage
+        self.percentage_label['text'] = f"{percentage:.1f}%"
+        
+        elapsed_str = f"{int(elapsed)}s" if elapsed < 60 else f"{int(elapsed/60)}m {int(elapsed%60)}s"
+        self.time_info_label['text'] = f"Elapsed: {elapsed_str} | ETA: {eta_text}"
+        
+        step_display = f"Step {self.current_step_num}/{self.total_steps}: {step_name}"
+        self.step_info_label['text'] = step_display
+        self.loading_label['text'] = step_name
+        
+        # Log progress periodically
+        if int(percentage) % 5 == 0 and int(percentage) != getattr(self, '_last_logged_percent', -1):
+            self.logger.info(f"Progress: {percentage:.1f}% - {step_name} - Elapsed: {elapsed_str} - ETA: {eta_text}")
+            self._last_logged_percent = int(percentage)
+    
+    def generate_terrain_task(self, task):
+        if not hasattr(self, 'generator'):
+            self.generator = self.create_kent_terrain_generator()
+        
+        try:
+            progress_data = next(self.generator)
+            if isinstance(progress_data, tuple):
+                progress, step_name, step_num = progress_data
+                self.update_progress(progress, step_name, step_num)
+            else:
+                # Fallback for simple progress values
+                self.update_progress(progress_data, "Processing...", None)
+        except StopIteration as e:
+            self.terrain = e.value
+            total_time = time.time() - self.start_time
+            self.logger.info(f"=== Terrain Generation Complete ===")
+            self.logger.info(f"Total generation time: {total_time:.2f}s")
+            self.finish_loading()
+            return Task.done
+        return Task.cont
     
     def create_kent_terrain_generator(self):
         # KENT-SIZED scale parameters
@@ -104,15 +260,17 @@ class KentSizedTerrain(ShowBase):
         resolution = 200
         
         # Phase 1: Setup (5%)
+        yield (0.01, "Initializing random seed and coordinate system", 1)
         np.random.seed(42)
         x = np.linspace(-size/2, size/2, resolution)
         y = np.linspace(-size/2, size/2, resolution)
         X, Y = np.meshgrid(x, y)
         distance_from_center = np.sqrt(X**2 + Y**2)
         max_distance = size / 2
-        yield 0.05
+        yield (0.05, "Coordinate system and distance calculations complete", 1)
         
         # Phase 2: Land mask (10%)
+        yield (0.08, "Generating land boundaries and coastline patterns", 2)
         land_width = size * 0.8
         land_height = size * 0.6
         coastline_noise = (
@@ -120,6 +278,7 @@ class KentSizedTerrain(ShowBase):
             np.sin(np.arctan2(Y, X) * 7) * 0.1 +
             np.sin(np.arctan2(Y, X) * 15) * 0.05
         )
+        yield (0.12, "Computing ocean and coastal areas", 2)
         land_mask = np.ones((resolution, resolution))
         ocean_areas = (
             (np.abs(X) > land_width/2) | 
@@ -129,31 +288,38 @@ class KentSizedTerrain(ShowBase):
         coastal_variation = coastline_noise * (distance_from_center / max_distance)
         ocean_areas = ocean_areas | (coastal_variation > 0.1)
         land_mask[ocean_areas] = 0
-        yield 0.15
+        yield (0.15, "Land mask generation complete", 2)
         
         # Phase 3: Heightmap base (20%)
+        yield (0.18, "Creating base heightmap and ocean depth", 3)
         ocean_depth = -100.0
         heightmap = np.ones((resolution, resolution)) * ocean_depth
+        yield (0.25, "Applying base land elevation", 3)
         land_elevation = land_mask * 200
-        yield 0.35
+        yield (0.35, "Base heightmap established", 3)
         
         # Phase 4: Terrain features (20%)
+        yield (0.38, "Generating highland regions", 4)
         highland_mask = np.maximum(0, land_mask - 0.2) / 0.8
         highlands = highland_mask * 300 * (1 - distance_from_center / max_distance)
+        yield (0.42, "Creating mountain ridges and valleys", 4)
         ridge_spacing = 5000.0
         ridges = 50 * np.sin(X / ridge_spacing * 2 * np.pi) * highland_mask
         ridges += 30 * np.cos(Y / (ridge_spacing * 1.5) * 2 * np.pi) * highland_mask
+        yield (0.47, "Carving river systems", 4)
         river_pattern = np.sin(X * 0.0001) * np.cos(Y * 0.0001)
         rivers = river_pattern * 20 * land_mask
+        yield (0.52, "Defining coastal regions", 4)
         coastal_areas = (distance_from_center > size * 0.25) & (land_mask > 0.5)
         heightmap[coastal_areas] = ocean_depth + 10
         heightmap = ocean_depth * (1 - land_mask) + land_elevation
         heightmap += highlands
         heightmap += ridges
         heightmap += rivers
-        yield 0.55
+        yield (0.55, "Major terrain features complete", 4)
         
         # Phase 5: Noise (10%)
+        yield (0.58, "Generating large-scale terrain noise", 5)
         noise_large = np.random.randn(resolution, resolution) * 10
         from scipy.ndimage import gaussian_filter
         try:
@@ -170,22 +336,25 @@ class KentSizedTerrain(ShowBase):
                 )
                 noise_large = noise_smooth
         heightmap += noise_large * land_mask
+        yield (0.62, "Adding fine detail noise", 5)
         noise_small = np.random.randn(resolution, resolution) * 2
         heightmap += noise_small * land_mask
         far_ocean = distance_from_center > size * 0.45
         heightmap[far_ocean] = ocean_depth
-        yield 0.65
+        yield (0.65, "Terrain noise application complete", 5)
         
         # Phase 6: Mesh setup (5%)
+        yield (0.67, "Setting up 3D mesh vertex format", 6)
         vformat = GeomVertexFormat.getV3n3c4()
         vdata = GeomVertexData('terrain', vformat, Geom.UHStatic)
         vdata.setNumRows(resolution * resolution)
         vertex = GeomVertexWriter(vdata, 'vertex')
         normal = GeomVertexWriter(vdata, 'normal')
         color = GeomVertexWriter(vdata, 'color')
-        yield 0.70
+        yield (0.70, "Mesh vertex writers initialized", 6)
         
         # Phase 7: Vertices (10%)
+        yield (0.72, "Generating terrain vertices and colors", 7)
         for j in range(resolution):
             for i in range(resolution):
                 h = heightmap[j, i]
@@ -216,9 +385,14 @@ class KentSizedTerrain(ShowBase):
                 g = np.clip(g + variation, 0, 1)
                 b = np.clip(b + variation, 0, 1)
                 color.addData4(r, g, b, 1.0)
-            yield 0.70 + (0.10 * (j + 1) / resolution)
+            # Update progress every 20 rows for smoother progress
+            if j % 20 == 0 or j == resolution - 1:
+                progress = 0.70 + (0.10 * (j + 1) / resolution)
+                step_text = f"Generating vertices: {j+1}/{resolution} rows ({((j+1)/resolution)*100:.0f}%)"
+                yield (progress, step_text, 7)
         
         # Phase 8: Normals (5%)
+        yield (0.82, "Calculating surface normals for lighting", 8)
         for j in range(resolution):
             for i in range(resolution):
                 idx = j * resolution + i
@@ -236,9 +410,14 @@ class KentSizedTerrain(ShowBase):
                     length = math.sqrt(nx*nx + ny*ny + nz*nz)
                     normal.setRow(idx)
                     normal.setData3(nx/length, ny/length, nz/length)
-        yield 0.85
+            # Update progress every 40 rows for normals
+            if j % 40 == 0 or j == resolution - 1:
+                progress = 0.80 + (0.05 * (j + 1) / resolution)
+                step_text = f"Computing normals: {j+1}/{resolution} rows ({((j+1)/resolution)*100:.0f}%)"
+                yield (progress, step_text, 8)
         
         # Phase 9: Geometry and triangles (10%)
+        yield (0.87, "Building triangle mesh geometry", 9)
         geom = Geom(vdata)
         for j in range(resolution - 1):
             for i in range(resolution - 1):
@@ -251,27 +430,37 @@ class KentSizedTerrain(ShowBase):
                 prim.addVertices(v1, v2, v3)
                 prim.closePrimitive()
                 geom.addPrimitive(prim)
-            yield 0.85 + (0.10 * (j + 1) / (resolution - 1))
+            # Update progress every 20 rows for triangles
+            if j % 20 == 0 or j == resolution - 2:
+                progress = 0.85 + (0.10 * (j + 1) / (resolution - 1))
+                step_text = f"Creating triangles: {j+1}/{resolution-1} rows ({((j+1)/(resolution-1))*100:.0f}%)"
+                yield (progress, step_text, 9)
         
         # Phase 10: Final node (5%)
+        yield (0.96, "Creating terrain node and attaching to scene", 10)
         node = GeomNode('terrain')
         node.addGeom(geom)
         terrain_np = self.render.attachNewNode(node)
         terrain_np.setTwoSided(True)
         
+        yield (0.98, "Calculating terrain statistics", 10)
         min_h = np.min(heightmap)
         max_h = np.max(heightmap)
-        print(f"Height range: {min_h:.1f} to {max_h:.1f} meters")
-        print(f"Land area: ~{int(land_width/1000)}km x {int(land_height/1000)}km")
-        print(f"Total area: ~{int(size*size/1000000)} km²")
+        self.logger.info(f"Height range: {min_h:.1f} to {max_h:.1f} meters")
+        self.logger.info(f"Land area: ~{int(land_width/1000)}km x {int(land_height/1000)}km")
+        self.logger.info(f"Total area: ~{int(size*size/1000000)} km²")
         
-        yield 1.0
+        yield (1.0, "Terrain generation complete!", 10)
         return terrain_np  # This will be raised in StopIteration.value
     
     def finish_loading(self):
         # Hide loading screen
+        self.loading_title.destroy()
         self.loading_label.destroy()
         self.progress_bar.destroy()
+        self.percentage_label.destroy()
+        self.time_info_label.destroy()
+        self.step_info_label.destroy()
         
         # Show UI
         self.title.show()
@@ -384,9 +573,15 @@ class KentSizedTerrain(ShowBase):
         return Task.cont
 
 if __name__ == "__main__":
-    print("\n=== Kent-Sized Terrain with Loading Screen ===")
+    print("\n=== Kent-Sized Terrain with Enhanced Loading System ===")
     print("Scale: 59km x 59km (3,500 km²)")
-    print("Note: Generation runs with progress bar")
+    print("Features:")
+    print("  • Detailed progress tracking with ETA calculation")
+    print("  • Step-by-step loading information")
+    print("  • Comprehensive logging to console and file")
+    print("  • Accurate percentage display")
+    print("  • Elapsed time tracking")
+    print("\nStarting terrain generation...")
     app = KentSizedTerrain()
     app.run()
 
