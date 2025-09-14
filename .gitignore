@@ -1,12 +1,10 @@
-# Byte-compiled / optimized / DLL files
+# Main Capstone1 Project .gitignore
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
-
-# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -20,85 +18,53 @@ parts/
 sdist/
 var/
 wheels/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
 
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
-
-# Virtual Environments
+# Virtual environments
 venv/
-ENV/
 env/
-.venv/
-.env
+ENV/
 
-# IDE specific files
+# Logs
+*.log
+*.out
+
+# Unity projects (handled by their own .gitignore)
+# Each Unity project should have its own .gitignore
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
-.DS_Store
 
-# Panda3D specific
-*.bam
-*.egg
-*.pz
-*.pyc
+# Jupyter Notebook
+.ipynb_checkpoints
 
-# Log files
-*.log
+# Large generated files
+*.terrain
+*.heightmap
 
-# Temporary files
-*.tmp
-temp/
-tmp/
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-# Configuration files with sensitive data
-config.ini
-secrets.json
-.env.local
-.env.*.local
-
-# Operating System Files
-Thumbs.db
-desktop.ini
-
-# Backup files
-*.bak
-*.backup
-*~
-
-# Project specific
-output/
-cache/
-
+# Project-specific ignores
+AIGENERATEDJUNK/
+terrain_generation.log
+advanced_terrain_generation.log
+terrain_system.log
