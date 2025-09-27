@@ -3,14 +3,24 @@
 # Get latest from https://github.com/github/gitignore/blob/master/Unity.gitignore
 #
 # Unity folders (anywhere in the repository)
-**/[Ll]ibrary/
-**/[Tt]emp/
-**/[Oo]bj/
-**/[Bb]uild/
-**/[Bb]uilds/
-**/[Ll]ogs/
-**/[Mm]emoryCaptures/
-**/[Uu]serSettings/
+**/Library/
+**/Temp/
+**/Obj/
+**/Build/
+**/Builds/
+**/Logs/
+**/MemoryCaptures/
+**/UserSettings/
+
+# Unity Library folders (case variations)
+**/library/
+**/temp/
+**/obj/
+**/build/
+**/builds/
+**/logs/
+**/memorycaptures/
+**/usersettings/
 
 # Asset meta data should only be ignored when the corresponding asset is also ignored
 !/[Aa]ssets/**/*.meta
