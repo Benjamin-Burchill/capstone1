@@ -1,0 +1,8 @@
+ErrorTile,0,0,0
+GrassTile,34,139,34
+GrassTile,32,177,77
+HillsTile,160,82,45
+MountainsTile,139,69,19
+DeepWaterTile,0,0,139
+ShallowWaterTile,135,206,235
+
