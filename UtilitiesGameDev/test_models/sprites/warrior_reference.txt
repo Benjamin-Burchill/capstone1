@@ -1,0 +1,23 @@
+Sprite Sheet Reference for warrior.obj
+==================================================
+
+Sprite Size: 128x128 pixels
+Total Directions: 6
+Sprite Sheet: warrior_spritesheet.png
+
+Direction Layout:
+------------------------------
+0: east
+1: southeast
+2: southwest
+3: west
+4: northwest
+5: northeast
+
+Usage in Unity:
+------------------------------
+1. Import the sprite sheet into Unity
+2. Set Texture Type to 'Sprite'
+3. Set Sprite Mode to 'Multiple'
+4. Use Sprite Editor to slice the sheet
+5. Grid size: 128x128

@@ -1,0 +1,11 @@
+# Requirements for OBJ to Sprite Converter
+trimesh>=3.20.0
+Pillow>=10.0.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+scipy>=1.10.0
+networkx>=3.0
+shapely>=2.0.0  # Required for trimesh mesh operations
+pyglet>=2.0.0  # Optional, for better OBJ loading
+pyrender>=0.1.45  # Optional, for advanced rendering
+opencv-python>=4.8.0  # Optional, for image processing

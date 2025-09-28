@@ -1,0 +1,41 @@
+{
+  "sprite_size": 128,
+  "directions": 6,
+  "elevation": 20,
+  "add_outline": true,
+  "create_sheet": true,
+  "create_animation": true,
+  "output_base": "sprites",
+  "categories": {
+    "units": {
+      "size": 128,
+      "directions": 6,
+      "description": "Regular game units (warriors, archers, etc.)"
+    },
+    "heroes": {
+      "size": 256,
+      "directions": 8,
+      "description": "Hero units with more detail"
+    },
+    "buildings": {
+      "size": 256,
+      "directions": 4,
+      "description": "Buildings and structures"
+    },
+    "props": {
+      "size": 64,
+      "directions": 8,
+      "description": "Small decorative objects"
+    },
+    "bosses": {
+      "size": 512,
+      "directions": 8,
+      "description": "Large boss enemies"
+    },
+    "portraits": {
+      "size": 512,
+      "directions": 1,
+      "description": "Character portraits for UI"
+    }
+  }
+}
