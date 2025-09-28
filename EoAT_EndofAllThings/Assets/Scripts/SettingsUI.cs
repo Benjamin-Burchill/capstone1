@@ -450,3 +450,6 @@ public class KeyBindingRowData : MonoBehaviour
     public TextMeshProUGUI altKeyText;
 }
 
+
+
+
