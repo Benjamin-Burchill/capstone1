@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C# Dependency Visualizer</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow: hidden;
+        }
+        
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        #sidebar {
+            width: 350px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        #sidebar.collapsed {
+            transform: translateX(-320px);
+        }
+        
+        .sidebar-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .sidebar-content {
+            padding: 20px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stats {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #764ba2;
+        }
+        
+        .controls {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        #graph {
+            flex: 1;
+            position: relative;
+            background: white;
+        }
+        
+        #toggle-sidebar {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            z-index: 1000;
+            background: white;
+            color: #764ba2;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .node {
+            cursor: pointer;
+        }
+        
+        .node circle {
+            stroke-width: 2px;
+            transition: all 0.3s;
+        }
+        
+        .node:hover circle {
+            stroke-width: 3px;
+            filter: brightness(1.1);
+        }
+        
+        .node text {
+            font-size: 12px;
+            pointer-events: none;
+            text-anchor: middle;
+            fill: #333;
+        }
+        
+        .link {
+            fill: none;
+            stroke-opacity: 0.4;
+            transition: all 0.3s;
+        }
+        
+        .link:hover {
+            stroke-opacity: 0.8;
+            stroke-width: 3px;
+        }
+        
+        .link-arrow {
+            fill: #999;
+            fill-opacity: 0.6;
+        }
+        
+        #tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        #tooltip.visible {
+            opacity: 1;
+        }
+        
+        .tooltip-title {
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 8px;
+            color: #667eea;
+        }
+        
+        .tooltip-item {
+            margin: 4px 0;
+        }
+        
+        .tooltip-label {
+            font-weight: 500;
+            color: #aaa;
+        }
+        
+        .class-details {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .class-details h3 {
+            color: #764ba2;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .class-details-section {
+            margin-bottom: 15px;
+        }
+        
+        .class-details-section h4 {
+            color: #667eea;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .class-details-list {
+            list-style: none;
+            padding-left: 10px;
+        }
+        
+        .class-details-list li {
+            padding: 2px 0;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #764ba2;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 13px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #764ba2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .range-value {
+            text-align: center;
+            color: #667eea;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <h1>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 2v20M2 12h20"></path>
+                    </svg>
+                    C# Dependencies
+                </h1>
+                <div>Interactive Dependency Graph</div>
+            </div>
+            
+            <div class="sidebar-content">
+                <div class="stats">
+                    <h3>Statistics</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Classes</span>
+                        <span class="stat-value" id="total-classes">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Dependencies</span>
+                        <span class="stat-value" id="total-dependencies">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Namespaces</span>
+                        <span class="stat-value" id="total-namespaces">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Avg Dependencies</span>
+                        <span class="stat-value" id="avg-dependencies">0</span>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <h3>Controls</h3>
+                    <div class="control-group">
+                        <label for="search">Search Classes:</label>
+                        <input type="text" id="search" placeholder="Type to search...">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="layout">Layout Type:</label>
+                        <select id="layout">
+                            <option value="force">Force Directed</option>
+                            <option value="circular">Circular</option>
+                            <option value="hierarchical">Hierarchical</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="link-strength">Link Strength:</label>
+                        <input type="range" id="link-strength" min="0" max="100" value="30">
+                        <div class="range-value" id="link-strength-value">30</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="node-size">Node Size By:</label>
+                        <select id="node-size">
+                            <option value="uniform">Uniform</option>
+                            <option value="dependencies">Dependencies Count</option>
+                            <option value="dependents">Dependents Count</option>
+                        </select>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="show-labels" checked>
+                        <label for="show-labels">Show Labels</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="show-arrows" checked>
+                        <label for="show-arrows">Show Arrow Directions</label>
+                    </div>
+                    
+                    <button onclick="resetGraph()">Reset View</button>
+                    <button onclick="exportSVG()">Export SVG</button>
+                </div>
+                
+                <div class="class-details" id="class-details" style="display: none;">
+                    <h3 id="class-name"></h3>
+                    <div class="class-details-section">
+                        <h4>File Path</h4>
+                        <div id="class-filepath"></div>
+                    </div>
+                    <div class="class-details-section">
+                        <h4>Dependencies (<span id="dep-count">0</span>)</h4>
+                        <ul id="class-dependencies" class="class-details-list"></ul>
+                    </div>
+                    <div class="class-details-section">
+                        <h4>Dependents (<span id="dependent-count">0</span>)</h4>
+                        <ul id="class-dependents" class="class-details-list"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="graph">
+            <button id="toggle-sidebar" onclick="toggleSidebar()">☰ Menu</button>
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <div>Loading dependencies...</div>
+            </div>
+            <svg id="graph-svg"></svg>
+            <div id="tooltip"></div>
+            
+            <div class="legend">
+                <div class="legend-title">Node Color Legend</div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4CAF50;"></div>
+                    <span>No Dependencies</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #2196F3;"></div>
+                    <span>1-3 Dependencies</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FF9800;"></div>
+                    <span>4-7 Dependencies</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #F44336;"></div>
+                    <span>8+ Dependencies</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let graphData = null;
+        let simulation = null;
+        let svg = null;
+        let g = null;
+        let link = null;
+        let node = null;
+        let selectedNode = null;
+        
+        // Color scale for nodes based on dependency count
+        const colorScale = d3.scaleThreshold()
+            .domain([1, 4, 8])
+            .range(['#4CAF50', '#2196F3', '#FF9800', '#F44336']);
+        
+        // Load data and initialize graph
+        async function loadData() {
+            try {
+                const response = await fetch('/api/data');
+                const data = await response.json();
+                graphData = processData(data);
+                
+                // Load statistics
+                const statsResponse = await fetch('/api/stats');
+                const stats = await statsResponse.json();
+                updateStatistics(stats);
+                
+                // Hide loading and create graph
+                document.getElementById('loading').style.display = 'none';
+                createGraph(graphData);
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('loading').innerHTML = 'Error loading data. Please refresh.';
+            }
+        }
+        
+        function processData(data) {
+            const nodes = [];
+            const links = [];
+            const classMap = new Map();
+            
+            // Create nodes
+            Object.keys(data.classes).forEach((className, i) => {
+                const classInfo = data.classes[className];
+                const node = {
+                    id: className,
+                    ...classInfo,
+                    index: i
+                };
+                nodes.push(node);
+                classMap.set(className, node);
+            });
+            
+            // Create links
+            Object.keys(data.classes).forEach(className => {
+                const classInfo = data.classes[className];
+                classInfo.dependencies.forEach(dep => {
+                    if (classMap.has(dep)) {
+                        links.push({
+                            source: className,
+                            target: dep,
+                            value: 1
+                        });
+                    }
+                });
+            });
+            
+            return { nodes, links };
+        }
+        
+        function updateStatistics(stats) {
+            document.getElementById('total-classes').textContent = stats.total_classes;
+            document.getElementById('total-dependencies').textContent = stats.total_dependencies;
+            document.getElementById('total-namespaces').textContent = stats.total_namespaces || 0;
+            document.getElementById('avg-dependencies').textContent = 
+                stats.average_dependencies ? stats.average_dependencies.toFixed(2) : '0';
+        }
+        
+        function createGraph(data) {
+            const width = document.getElementById('graph').clientWidth;
+            const height = document.getElementById('graph').clientHeight;
+            
+            // Create SVG
+            svg = d3.select('#graph-svg')
+                .attr('width', width)
+                .attr('height', height);
+            
+            // Create zoom behavior
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 10])
+                .on('zoom', (event) => {
+                    g.attr('transform', event.transform);
+                });
+            
+            svg.call(zoom);
+            
+            // Create main group
+            g = svg.append('g');
+            
+            // Define arrow markers
+            svg.append('defs').selectAll('marker')
+                .data(['arrow'])
+                .enter().append('marker')
+                .attr('id', d => d)
+                .attr('viewBox', '0 -5 10 10')
+                .attr('refX', 15)
+                .attr('refY', 0)
+                .attr('markerWidth', 8)
+                .attr('markerHeight', 8)
+                .attr('orient', 'auto')
+                .append('path')
+                .attr('d', 'M0,-5L10,0L0,5')
+                .attr('class', 'link-arrow');
+            
+            // Create force simulation
+            simulation = d3.forceSimulation(data.nodes)
+                .force('link', d3.forceLink(data.links).id(d => d.id).distance(100))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(30));
+            
+            // Create links
+            link = g.append('g')
+                .selectAll('line')
+                .data(data.links)
+                .enter().append('line')
+                .attr('class', 'link')
+                .attr('stroke', '#999')
+                .attr('stroke-width', 2)
+                .attr('marker-end', 'url(#arrow)');
+            
+            // Create nodes
+            node = g.append('g')
+                .selectAll('.node')
+                .data(data.nodes)
+                .enter().append('g')
+                .attr('class', 'node')
+                .call(drag(simulation));
+            
+            // Add circles to nodes
+            node.append('circle')
+                .attr('r', d => getNodeSize(d))
+                .attr('fill', d => colorScale(d.dependencies.length))
+                .attr('stroke', '#fff');
+            
+            // Add labels to nodes
+            node.append('text')
+                .text(d => d.name)
+                .attr('dy', 4)
+                .style('font-size', '10px')
+                .style('text-anchor', 'middle');
+            
+            // Add hover and click events
+            node.on('mouseover', showTooltip)
+                .on('mouseout', hideTooltip)
+                .on('click', selectNode);
+            
+            // Update positions on tick
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                
+                node.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+            
+            // Setup controls
+            setupControls();
+        }
+        
+        function getNodeSize(node) {
+            const sizeBy = document.getElementById('node-size').value;
+            if (sizeBy === 'uniform') return 8;
+            if (sizeBy === 'dependencies') return 5 + Math.min(node.dependencies.length * 2, 20);
+            if (sizeBy === 'dependents') return 5 + Math.min(node.dependents.length * 2, 20);
+            return 8;
+        }
+        
+        function drag(simulation) {
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+            
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+            
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+            
+            return d3.drag()
+                .on('start', dragstarted)
+                .on('drag', dragged)
+                .on('end', dragended);
+        }
+        
+        function showTooltip(event, d) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.innerHTML = `
+                <div class="tooltip-title">${d.name}</div>
+                <div class="tooltip-item">
+                    <span class="tooltip-label">File:</span> ${d.filepath}
+                </div>
+                <div class="tooltip-item">
+                    <span class="tooltip-label">Namespace:</span> ${d.namespace || 'None'}
+                </div>
+                <div class="tooltip-item">
+                    <span class="tooltip-label">Dependencies:</span> ${d.dependencies.length}
+                </div>
+                <div class="tooltip-item">
+                    <span class="tooltip-label">Dependents:</span> ${d.dependents.length}
+                </div>
+                ${d.base_classes.length > 0 ? `
+                <div class="tooltip-item">
+                    <span class="tooltip-label">Inherits:</span> ${d.base_classes.join(', ')}
+                </div>` : ''}
+                ${d.interfaces.length > 0 ? `
+                <div class="tooltip-item">
+                    <span class="tooltip-label">Implements:</span> ${d.interfaces.join(', ')}
+                </div>` : ''}
+            `;
+            tooltip.style.left = (event.pageX + 10) + 'px';
+            tooltip.style.top = (event.pageY - 10) + 'px';
+            tooltip.classList.add('visible');
+        }
+        
+        function hideTooltip() {
+            document.getElementById('tooltip').classList.remove('visible');
+        }
+        
+        function selectNode(event, d) {
+            selectedNode = d;
+            
+            // Update class details panel
+            document.getElementById('class-details').style.display = 'block';
+            document.getElementById('class-name').textContent = d.name;
+            document.getElementById('class-filepath').textContent = d.filepath;
+            document.getElementById('dep-count').textContent = d.dependencies.length;
+            document.getElementById('dependent-count').textContent = d.dependents.length;
+            
+            // Update dependencies list
+            const depList = document.getElementById('class-dependencies');
+            depList.innerHTML = d.dependencies.map(dep => `<li>${dep}</li>`).join('');
+            
+            // Update dependents list
+            const dependentList = document.getElementById('class-dependents');
+            dependentList.innerHTML = d.dependents.map(dep => `<li>${dep}</li>`).join('');
+            
+            // Highlight connected nodes
+            highlightConnections(d);
+        }
+        
+        function highlightConnections(selectedNode) {
+            // Reset all nodes and links
+            node.selectAll('circle').style('opacity', 0.3);
+            link.style('opacity', 0.1);
+            
+            // Highlight selected node
+            node.filter(d => d.id === selectedNode.id)
+                .selectAll('circle')
+                .style('opacity', 1);
+            
+            // Highlight dependencies
+            node.filter(d => selectedNode.dependencies.includes(d.id))
+                .selectAll('circle')
+                .style('opacity', 1);
+            
+            // Highlight dependents
+            node.filter(d => selectedNode.dependents.includes(d.id))
+                .selectAll('circle')
+                .style('opacity', 1);
+            
+            // Highlight links
+            link.filter(d => 
+                d.source.id === selectedNode.id || 
+                d.target.id === selectedNode.id
+            ).style('opacity', 0.8);
+        }
+        
+        function resetHighlight() {
+            node.selectAll('circle').style('opacity', 1);
+            link.style('opacity', 0.4);
+        }
+        
+        function setupControls() {
+            // Search functionality
+            document.getElementById('search').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                if (searchTerm === '') {
+                    resetHighlight();
+                    return;
+                }
+                
+                node.selectAll('circle').style('opacity', d => 
+                    d.name.toLowerCase().includes(searchTerm) ? 1 : 0.2
+                );
+            });
+            
+            // Layout type
+            document.getElementById('layout').addEventListener('change', (e) => {
+                const layout = e.target.value;
+                updateLayout(layout);
+            });
+            
+            // Link strength
+            const linkStrengthSlider = document.getElementById('link-strength');
+            linkStrengthSlider.addEventListener('input', (e) => {
+                const value = e.target.value;
+                document.getElementById('link-strength-value').textContent = value;
+                simulation.force('link').strength(value / 100);
+                simulation.alpha(0.3).restart();
+            });
+            
+            // Node size
+            document.getElementById('node-size').addEventListener('change', () => {
+                node.selectAll('circle')
+                    .transition()
+                    .duration(300)
+                    .attr('r', d => getNodeSize(d));
+            });
+            
+            // Show/hide labels
+            document.getElementById('show-labels').addEventListener('change', (e) => {
+                node.selectAll('text').style('display', e.target.checked ? 'block' : 'none');
+            });
+            
+            // Show/hide arrows
+            document.getElementById('show-arrows').addEventListener('change', (e) => {
+                link.attr('marker-end', e.target.checked ? 'url(#arrow)' : null);
+            });
+        }
+        
+        function updateLayout(layout) {
+            const width = document.getElementById('graph').clientWidth;
+            const height = document.getElementById('graph').clientHeight;
+            
+            if (layout === 'circular') {
+                const radius = Math.min(width, height) / 3;
+                const angle = (2 * Math.PI) / graphData.nodes.length;
+                
+                graphData.nodes.forEach((node, i) => {
+                    node.fx = width / 2 + radius * Math.cos(i * angle);
+                    node.fy = height / 2 + radius * Math.sin(i * angle);
+                });
+                simulation.alpha(0.3).restart();
+                
+                setTimeout(() => {
+                    graphData.nodes.forEach(node => {
+                        node.fx = null;
+                        node.fy = null;
+                    });
+                }, 1000);
+                
+            } else if (layout === 'hierarchical') {
+                // Simple hierarchical layout based on dependency count
+                const sorted = [...graphData.nodes].sort((a, b) => 
+                    b.dependents.length - a.dependents.length
+                );
+                
+                const levels = 5;
+                const levelHeight = height / (levels + 1);
+                
+                sorted.forEach((node, i) => {
+                    const level = Math.floor(i / (sorted.length / levels));
+                    const posInLevel = i % Math.ceil(sorted.length / levels);
+                    const levelWidth = width / Math.ceil(sorted.length / levels);
+                    
+                    node.fx = levelWidth * (posInLevel + 0.5);
+                    node.fy = levelHeight * (level + 1);
+                });
+                
+                simulation.alpha(0.3).restart();
+                
+                setTimeout(() => {
+                    graphData.nodes.forEach(node => {
+                        node.fx = null;
+                        node.fy = null;
+                    });
+                }, 1000);
+                
+            } else {
+                // Force directed (default)
+                simulation.force('center', d3.forceCenter(width / 2, height / 2));
+                simulation.alpha(0.3).restart();
+            }
+        }
+        
+        function resetGraph() {
+            resetHighlight();
+            document.getElementById('search').value = '';
+            document.getElementById('class-details').style.display = 'none';
+            
+            const width = document.getElementById('graph').clientWidth;
+            const height = document.getElementById('graph').clientHeight;
+            
+            svg.transition()
+                .duration(750)
+                .call(d3.zoom().transform, d3.zoomIdentity);
+            
+            simulation.force('center', d3.forceCenter(width / 2, height / 2));
+            simulation.alpha(0.3).restart();
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+        
+        function exportSVG() {
+            const svgElement = document.getElementById('graph-svg');
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svgElement);
+            const blob = new Blob([svgString], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'dependency_graph.svg';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', loadData);
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const width = document.getElementById('graph').clientWidth;
+            const height = document.getElementById('graph').clientHeight;
+            
+            svg.attr('width', width).attr('height', height);
+            simulation.force('center', d3.forceCenter(width / 2, height / 2));
+            simulation.alpha(0.3).restart();
+        });
+    </script>
+</body>
+</html>
