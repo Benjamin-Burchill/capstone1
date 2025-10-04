@@ -440,7 +440,8 @@ public class HybridMap : MonoBehaviour
         {
             GameObject logicObj = logicTileObjects[position];
             TileLogic tileLogic = logicObj.GetComponent<TileLogic>();
-            tileLogic?.OnTerrainChanged(newTerrain);
+            // Call the UpdateTerrain method directly (not through Unity's message system)
+            tileLogic?.UpdateTerrain(newTerrain);
         }
         
         Debug.Log($"HybridMap: Modified tile at ({x},{y}) to {newTerrain} - Easy runtime changes!");
@@ -543,6 +544,7 @@ public class HybridMap : MonoBehaviour
         }
     }
 }
+
 
 
 

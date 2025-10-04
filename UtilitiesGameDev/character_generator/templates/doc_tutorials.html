@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Character Generator - Tutorials{% endblock %}
+
+{% block content %}
+<h1>📖 Tutorials</h1>
+<p>Step-by-step guides to help you get the most out of the Character Generator.</p>
+
+{% for tutorial in tutorials %}
+<div style="background: white; padding: 2rem; border-radius: 0.5rem; margin: 2rem 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <h2>{{ tutorial.title }}</h2>
+    {% for step in tutorial.steps %}
+    <div class="tutorial-step">
+        <strong>Step {{ loop.index }}:</strong> {{ step }}
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+
+<h2>Video Tutorials</h2>
+<div style="background: #f7fafc; padding: 2rem; border-radius: 0.5rem; margin: 2rem 0;">
+    <p style="color: #718096;">
+        🎥 Video tutorials coming soon! Check back for in-depth walkthroughs of:
+    </p>
+    <ul>
+        <li>Creating your first character</li>
+        <li>Advanced morphing techniques</li>
+        <li>Building custom presets</li>
+        <li>Integrating with game engines</li>
+    </ul>
+</div>
+
+<h2>Common Workflows</h2>
+
+<div style="margin: 2rem 0;">
+    <h3>Creating a Fantasy Race</h3>
+    <div class="tutorial-step">
+        <p><strong>Goal:</strong> Create a unique fantasy race for your game</p>
+    </div>
+    <ol style="margin-left: 2rem;">
+        <li>Start with a base preset (Human or similar)</li>
+        <li>Adjust global parameters:
+            <ul>
+                <li>Height for race size</li>
+                <li>Build for body type</li>
+                <li>Muscle definition for physique</li>
+            </ul>
+        </li>
+        <li>Modify facial features:
+            <ul>
+                <li>Eye size and spacing</li>
+                <li>Jaw and chin proportions</li>
+                <li>Nose characteristics</li>
+            </ul>
+        </li>
+        <li>Add special features:
+            <ul>
+                <li>Horns for demonic races</li>
+                <li>Elongated ears for elven types</li>
+                <li>Pronounced brow ridge for primitive races</li>
+            </ul>
+        </li>
+        <li>Save as a new preset for consistency</li>
+    </ol>
+</div>
+
+<div style="margin: 2rem 0;">
+    <h3>Creating Character Variations</h3>
+    <div class="tutorial-step">
+        <p><strong>Goal:</strong> Generate multiple variations of the same character type</p>
+    </div>
+    <ol style="margin-left: 2rem;">
+        <li>Load your base preset</li>
+        <li>Use the Randomize button with constraints:
+            <ul>
+                <li>Lock important parameters</li>
+                <li>Set variation ranges</li>
+            </ul>
+        </li>
+        <li>Fine-tune each variation manually</li>
+        <li>Export each variation with descriptive names</li>
+        <li>Create a catalog of your variations</li>
+    </ol>
+</div>
+
+<div style="margin: 2rem 0;">
+    <h3>Optimization for Games</h3>
+    <div class="tutorial-step">
+        <p><strong>Goal:</strong> Prepare characters for real-time rendering</p>
+    </div>
+    <ol style="margin-left: 2rem;">
+        <li>Choose appropriate quality level:
+            <ul>
+                <li>Low (~316 vertices) for mobile/background characters</li>
+                <li>Medium (~442 vertices) for main characters</li>
+                <li>High (~2270 vertices) for hero characters</li>
+            </ul>
+        </li>
+        <li>Export as OBJ or STL format</li>
+        <li>Post-process in your 3D software:
+            <ul>
+                <li>Apply texture coordinates</li>
+                <li>Add rigging/skeleton</li>
+                <li>Create LODs if needed</li>
+            </ul>
+        </li>
+        <li>Import into your game engine</li>
+    </ol>
+</div>
+
+<h2>Tips & Tricks</h2>
+<div style="background: #f0fff4; border: 1px solid #9ae6b4; padding: 1rem; border-radius: 0.5rem; margin: 2rem 0;">
+    <h3>💡 Pro Tips</h3>
+    <ul>
+        <li><strong>Start with presets:</strong> Don't create from scratch - modify existing presets</li>
+        <li><strong>Small changes:</strong> Subtle parameter adjustments often look more natural</li>
+        <li><strong>Test in-game:</strong> Always preview characters in your target environment</li>
+        <li><strong>Save incrementally:</strong> Keep versions as you work</li>
+        <li><strong>Use symmetry:</strong> The system guarantees perfect bilateral symmetry</li>
+    </ul>
+</div>
+
+{% endblock %}
+
+

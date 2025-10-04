@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Character Generator - Architecture{% endblock %}
+
+{% block content %}
+<h1>🏗️ System Architecture</h1>
+
+{% if content %}
+    {{ content|safe }}
+{% else %}
+    <p>Detailed architecture documentation for the Character Generator system.</p>
+    
+    <h2>System Overview</h2>
+    <p>The Character Generator is built with a modular, layered architecture designed for maximum flexibility and extensibility.</p>
+    
+    <h2>Core Components</h2>
+    
+    <div style="background: white; padding: 2rem; border-radius: 0.5rem; margin: 2rem 0;">
+        <h3>1. Mesh Generation Layer</h3>
+        <p>Responsible for creating base humanoid meshes with perfect bilateral symmetry.</p>
+        <ul>
+            <li><strong>SymmetricHumanoidBuilder</strong> - Generates half-mesh and mirrors for symmetry</li>
+            <li><strong>Vertex Management</strong> - Efficient vertex and face creation</li>
+            <li><strong>Topology Control</strong> - Ensures watertight, manifold meshes</li>
+        </ul>
+    </div>
+    
+    <div style="background: white; padding: 2rem; border-radius: 0.5rem; margin: 2rem 0;">
+        <h3>2. Morphing System</h3>
+        <p>Advanced deformation algorithms for character customization.</p>
+        <ul>
+            <li><strong>Blend Shapes</strong> - Linear interpolation between target shapes</li>
+            <li><strong>RBF Morphing</strong> - Radial basis function deformations</li>
+            <li><strong>Influence Maps</strong> - Regional control over deformations</li>
+            <li><strong>Muscle System</strong> - Anatomically-based muscle deformations</li>
+        </ul>
+    </div>
+    
+    <div style="background: white; padding: 2rem; border-radius: 0.5rem; margin: 2rem 0;">
+        <h3>3. Parameter Management</h3>
+        <p>Comprehensive parameter system with validation and presets.</p>
+        <ul>
+            <li><strong>48+ Parameters</strong> - Fine control over character appearance</li>
+            <li><strong>Preset System</strong> - Save and load character configurations</li>
+            <li><strong>Validation</strong> - Ensures parameters stay within valid ranges</li>
+        </ul>
+    </div>
+    
+    <div style="background: white; padding: 2rem; border-radius: 0.5rem; margin: 2rem 0;">
+        <h3>4. User Interface</h3>
+        <p>Professional GUI with real-time 3D visualization.</p>
+        <ul>
+            <li><strong>PyQt6 Framework</strong> - Modern, responsive interface</li>
+            <li><strong>3D Viewport</strong> - Matplotlib-based real-time preview</li>
+            <li><strong>Tabbed Controls</strong> - Organized parameter grouping</li>
+            <li><strong>Export System</strong> - Multiple 3D format support</li>
+        </ul>
+    </div>
+    
+    <h2>Data Flow</h2>
+    <div class="code-block">
+User Input → Parameter Validation → Morphing System → Mesh Generation → 3D Viewport
+     ↓                                      ↓                              ↓
+   Presets                            RBF/Blend Shapes                  Export
+    </div>
+    
+    <h2>Quality Levels</h2>
+    <table class="parameter-table">
+        <tr>
+            <th>Level</th>
+            <th>Vertices</th>
+            <th>Faces</th>
+            <th>Use Case</th>
+        </tr>
+        <tr>
+            <td>Low</td>
+            <td>~316</td>
+            <td>~600</td>
+            <td>Real-time games, mobile</td>
+        </tr>
+        <tr>
+            <td>Medium</td>
+            <td>~442</td>
+            <td>~850</td>
+            <td>PC games, prototyping</td>
+        </tr>
+        <tr>
+            <td>High</td>
+            <td>~2270</td>
+            <td>~4500</td>
+            <td>Cinematics, high-detail</td>
+        </tr>
+    </table>
+{% endif %}
+
+{% endblock %}
+
+

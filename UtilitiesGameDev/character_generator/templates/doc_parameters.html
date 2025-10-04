@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Character Generator - Parameters{% endblock %}
+
+{% block content %}
+<h1>🎛️ Parameter Reference</h1>
+<p>Complete reference for all adjustable character parameters.</p>
+
+<h2>Parameter Categories</h2>
+<p>Parameters are organized into logical categories for easy navigation and control.</p>
+
+<table class="parameter-table">
+    <thead>
+        <tr>
+            <th>Parameter</th>
+            <th>Category</th>
+            <th>Range</th>
+            <th>Default</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for param in parameters %}
+        <tr>
+            <td><code>{{ param.name }}</code></td>
+            <td><span class="badge">{{ param.category }}</span></td>
+            <td>{{ param.range }}</td>
+            <td>{{ "%.2f"|format(param.default) }}</td>
+            <td>{{ param.description }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Parameter Guidelines</h2>
+<div class="tutorial-step">
+    <h3>Value Ranges</h3>
+    <p>Most parameters use a normalized range of <strong>-1.0 to 1.0</strong> where:</p>
+    <ul>
+        <li><strong>-1.0</strong> = Minimum/smallest value</li>
+        <li><strong>0.0</strong> = Default/neutral value</li>
+        <li><strong>1.0</strong> = Maximum/largest value</li>
+    </ul>
+    <p><strong>Exception:</strong> Height parameter uses <strong>0.5 to 1.5</strong> as a multiplier of base height.</p>
+</div>
+
+<div class="tutorial-step">
+    <h3>Global vs Regional Parameters</h3>
+    <ul>
+        <li><strong>Global Parameters</strong> (height, build, muscle_definition) affect the entire character</li>
+        <li><strong>Regional Parameters</strong> target specific body parts for fine control</li>
+        <li>Parameters work together - adjust multiple parameters for best results</li>
+    </ul>
+</div>
+
+<div class="tutorial-step">
+    <h3>Special Parameters</h3>
+    <p>Fantasy features for creating non-human characters:</p>
+    <ul>
+        <li><strong>horn_size</strong> - Add horns to the character</li>
+        <li><strong>horn_position</strong> - Control horn placement</li>
+        <li><strong>tail_length</strong> - Add a tail (not yet implemented)</li>
+        <li><strong>tail_thickness</strong> - Control tail size (not yet implemented)</li>
+    </ul>
+</div>
+
+<h2>Common Parameter Combinations</h2>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin: 2rem 0;">
+    <div style="background: #f7fafc; padding: 1rem; border-radius: 0.5rem;">
+        <h4>Muscular Warrior</h4>
+        <ul style="list-style: none; margin: 0;">
+            <li>height: 1.1</li>
+            <li>build: 0.3</li>
+            <li>muscle_definition: 0.8</li>
+            <li>shoulder_width: 0.5</li>
+            <li>chest_size: 0.4</li>
+        </ul>
+    </div>
+    
+    <div style="background: #f7fafc; padding: 1rem; border-radius: 0.5rem;">
+        <h4>Slender Elf</h4>
+        <ul style="list-style: none; margin: 0;">
+            <li>height: 1.15</li>
+            <li>build: -0.3</li>
+            <li>muscle_definition: -0.2</li>
+            <li>ear_size: 0.8</li>
+            <li>jaw_width: -0.2</li>
+        </ul>
+    </div>
+    
+    <div style="background: #f7fafc; padding: 1rem; border-radius: 0.5rem;">
+        <h4>Stocky Dwarf</h4>
+        <ul style="list-style: none; margin: 0;">
+            <li>height: 0.7</li>
+            <li>build: 0.5</li>
+            <li>muscle_definition: 0.3</li>
+            <li>shoulder_width: 0.4</li>
+            <li>leg_length: -0.3</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}
+
+

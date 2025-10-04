@@ -254,6 +254,43 @@ public class UIManager : MonoBehaviour
         ShowMessage(message);
     }
     
+    /// <summary>
+    /// Sets the active player and updates UI accordingly
+    /// Called by TurnManager when switching players
+    /// </summary>
+    public void SetActivePlayer(PlayerData player)
+    {
+        if (player != null)
+        {
+            // Update the player display with the player ID
+            UpdatePlayerDisplay(player.playerID);
+            
+            // Update player name with custom name if provided
+            if (currentPlayerText != null && !string.IsNullOrEmpty(player.playerName))
+            {
+                currentPlayerText.text = $"{player.playerName}'s Turn";
+                currentPlayerText.color = player.color != Color.clear ? player.color : GetPlayerColor(player.playerID);
+            }
+            
+            // Enable/disable end turn button based on player type
+            if (endTurnButton != null)
+            {
+                // Only enable for human players
+                endTurnButton.interactable = !player.IsAI();
+            }
+            
+            // Show/hide controls based on player type
+            if (controlsPanel != null)
+            {
+                // Show controls only for human players
+                controlsPanel.SetActive(!player.IsAI());
+            }
+            
+            // Log for debugging
+            Debug.Log($"Active player set to: {player.playerName} (ID: {player.playerID}, Type: {player.playerType})");
+        }
+    }
+    
     void OnDestroy()
     {
         // Unsubscribe from events

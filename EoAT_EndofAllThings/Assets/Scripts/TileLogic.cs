@@ -183,9 +183,10 @@ public class TileLogic : MonoBehaviour
     }
     
     /// <summary>
-    /// Called when the terrain type changes at runtime
+    /// Internal method that actually updates the terrain
+    /// Called by OnTerrainChanged and other methods
     /// </summary>
-    public virtual void OnTerrainChanged(TerrainType newTerrain)
+    public virtual void UpdateTerrain(TerrainType newTerrain)
     {
         Debug.Log($"TileLogic: Terrain changed from {tileData.terrainType} to {newTerrain} at {tileData.position}");
         
@@ -200,16 +201,16 @@ public class TileLogic : MonoBehaviour
     }
     
     /// <summary>
-    /// Unity message system overload - converts int to TerrainType
-    /// This fixes the "message parameter has to be of type: int" error
+    /// Unity message system entry point - ONLY method named OnTerrainChanged
+    /// This is what Unity's SendMessage/BroadcastMessage will call
     /// </summary>
-    public virtual void OnTerrainChanged(int terrainIndex)
+    public void OnTerrainChanged(int terrainIndex)
     {
         // Convert int to TerrainType enum safely
         if (System.Enum.IsDefined(typeof(TerrainType), terrainIndex))
         {
             TerrainType newTerrain = (TerrainType)terrainIndex;
-            OnTerrainChanged(newTerrain); // Call the main method
+            UpdateTerrain(newTerrain); // Call the internal update method
         }
         else
         {

@@ -545,36 +545,4 @@ public enum InitiativeMode
     Speed        // Based on unit stats
 }
 
-// Enhanced player data
-[System.Serializable]
-public class PlayerData
-{
-    public int playerID;
-    public string playerName;
-    public PlayerType playerType;
-    public int teamID = -1; // -1 = no team
-    public Color color;
-    public bool isLocalPlayer = false; // For network play later
-    public bool isEliminated = false;
-    
-    public bool IsAI()
-    {
-        return playerType != PlayerType.Human;
-    }
-    
-    public bool IsOnTeam(int checkTeamID)
-    {
-        return teamID == checkTeamID;
-    }
-}
-
-// Team data for team-based modes
-[System.Serializable]
-public class TeamData
-{
-    public int teamID;
-    public string teamName;
-    public Color teamColor;
-    public bool isEliminated = false;
-    public List<int> memberPlayerIDs = new List<int>();
-}
+// PlayerData and TeamData classes have been moved to PlayerData.cs

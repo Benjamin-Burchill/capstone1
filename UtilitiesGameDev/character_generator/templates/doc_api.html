@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Character Generator - API Reference{% endblock %}
+
+{% block content %}
+<h1>📚 API Reference</h1>
+<p>Complete API documentation for the Character Generator system.</p>
+
+{% for api in api_docs %}
+<div style="margin: 2rem 0;">
+    <h2>{{ api.class }}</h2>
+    <p style="color: #718096;">{{ api.description }}</p>
+    
+    {% for method in api.methods %}
+    <div class="api-method">
+        <h4>{{ method.name }}()</h4>
+        <div class="api-signature">{{ method.signature }}</div>
+        <p>{{ method.doc }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+
+{% if not api_docs %}
+<div style="background: #fff5f5; border: 1px solid #feb2b2; padding: 1rem; border-radius: 0.5rem; margin: 2rem 0;">
+    <p style="color: #c53030;">
+        <strong>Note:</strong> API documentation requires the character generator modules to be installed.
+        Please ensure all dependencies are installed using: <code>pip install -r requirements.txt</code>
+    </p>
+</div>
+{% endif %}
+
+<h2>Usage Examples</h2>
+<div class="code-block">
+from character_generator_advanced import AdvancedCharacterGenerator
+
+# Initialize generator
+generator = AdvancedCharacterGenerator()
+
+# Load preset
+generator.load_preset('human')
+
+# Adjust parameters
+generator.set_parameter('height', 1.2)
+generator.set_parameter('muscle_definition', 0.5)
+generator.set_parameter('jaw_width', 0.3)
+
+# Generate mesh
+mesh = generator.generate()
+
+# Export
+mesh.export('my_character.obj')
+</div>
+
+<h2>Core Classes</h2>
+<ul>
+    <li><strong>AdvancedCharacterGenerator</strong> - Main generator class with parameter management</li>
+    <li><strong>AdvancedCharacterMesh</strong> - Mesh container with morphing capabilities</li>
+    <li><strong>CharacterParameters</strong> - Parameter container with validation</li>
+    <li><strong>SymmetricHumanoidBuilder</strong> - Creates perfectly symmetric base meshes</li>
+    <li><strong>AdvancedMorphingSystem</strong> - Applies complex deformations to meshes</li>
+</ul>
+
+{% endblock %}
+
+

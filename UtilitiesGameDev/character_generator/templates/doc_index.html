@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Character Generator - Overview{% endblock %}
+
+{% block content %}
+<h1>🎨 Character Generator System</h1>
+<p style="font-size: 1.2rem; color: #667eea; margin-bottom: 2rem;">
+    {{ docs.overview.description }} - Version {{ docs.overview.version }}
+</p>
+
+<div class="feature-grid">
+    {% for feature in docs.overview.features %}
+    <div class="feature-card">
+        <h3>{{ feature }}</h3>
+    </div>
+    {% endfor %}
+</div>
+
+<h2>Core Modules</h2>
+<p>The Character Generator system is built with a modular architecture for maximum flexibility and maintainability.</p>
+
+{% for module in docs.modules %}
+<div style="background: white; border-left: 4px solid #667eea; padding: 1.5rem; margin: 2rem 0; border-radius: 0.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <h3>{{ module.title }}</h3>
+    <p style="color: #718096; font-size: 0.875rem; margin-bottom: 0.5rem;">
+        <code>{{ module.name }}.py</code>
+    </p>
+    <p>{{ module.description }}</p>
+    
+    <h4 style="margin-top: 1rem; color: #4a5568;">Key Features:</h4>
+    <ul style="margin-left: 1rem;">
+        {% for feature in module.key_features %}
+        <li>{{ feature }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endfor %}
+
+<h2>Getting Started</h2>
+<div class="tutorial-step">
+    <h3>Installation</h3>
+    <div class="code-block">
+pip install -r requirements.txt
+    </div>
+</div>
+
+<div class="tutorial-step">
+    <h3>Quick Launch</h3>
+    <div class="code-block">
+python character_gui_simple_3d.py
+    </div>
+</div>
+
+<div class="tutorial-step">
+    <h3>First Character</h3>
+    <p>1. Launch the GUI<br>
+    2. Select a preset (Human, Dwarf, Elf, Orc, Goblin)<br>
+    3. Adjust parameters using the intuitive sliders<br>
+    4. Export your character using File → Export</p>
+</div>
+
+<h2>System Requirements</h2>
+<ul>
+    <li>Python 3.8 or higher</li>
+    <li>4GB RAM minimum (8GB recommended)</li>
+    <li>OpenGL support for 3D visualization</li>
+    <li>Windows, macOS, or Linux</li>
+</ul>
+
+<h2>Key Technologies</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;">
+    <span class="badge">Python 3.8+</span>
+    <span class="badge">PyQt6</span>
+    <span class="badge">Trimesh</span>
+    <span class="badge">NumPy</span>
+    <span class="badge">SciPy</span>
+    <span class="badge">Matplotlib</span>
+    <span class="badge">Flask</span>
+</div>
+
+{% endblock %}
+
